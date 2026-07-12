@@ -68,6 +68,7 @@ module "opsverse-eks-cluster" {
       # use_custom_launch_template = false
       min_size     = 2
       max_size     = 4
+      # desired_size managed by Cluster Autoscaler -- see lifecycle.ignore_changes below
       desired_size = 3
       root_volume_type = "gp2"
 
@@ -79,6 +80,10 @@ module "opsverse-eks-cluster" {
 
       # Uncomment this if a new VPC has to be created as part of the cluster creation
       subnet_ids      = module.vpc.private_subnets
+
+      lifecycle {
+        ignore_changes = [desired_size]
+      }
     }
   }
 }

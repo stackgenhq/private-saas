@@ -29,6 +29,9 @@ resource "aws_iam_role" "iam_for_loki_pods" {
 EOF
 }
 
+# DRIFT-REMEDIATION (wf-iac-drift-remediation-019f548c430b7cdd):
+# Live AWS policy had s3:DeleteObject added out-of-band. This TF definition
+# is authoritative — terraform apply will remove the unauthorized permission.
 resource "aws_iam_policy" "loki_pod_permissions" {
   name   = "opsverse-eks-pod-permissions"
   policy = <<EOF
@@ -40,8 +43,8 @@ resource "aws_iam_policy" "loki_pod_permissions" {
             "Action": [
                 "s3:GetObject",
                 "s3:PutObject",
-                "s3:DeleteObject",
-                "s3:ListBucket"
+                "s3:ListBucket",
+                "s3:GetBucketLocation"
             ],
             "Resource": [
                 "arn:aws:s3:::${var.s3_bucket_name}/*"

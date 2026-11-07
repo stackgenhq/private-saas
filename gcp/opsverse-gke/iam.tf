@@ -18,3 +18,18 @@ module "opsverse-workload-identity" {
 }
 
 
+
+locals {
+  backup_k8s_service_accounts = [
+    "${var.service_account_base_name}-observe-backend-grafana",
+    "vmsingle-${var.service_account_base_name}-observe-backend-sa",
+    "vmcluster-${var.service_account_base_name}-observe-backend-sa",
+  ]
+}
+
+resource "google_service_account_iam_member" "backup_workload_identity" {
+  for_each           = toset(local.backup_k8s_service_accounts)
+  service_account_id = module.opsverse-workload-identity.gcp_service_account.name
+  role               = "roles/iam.workloadIdentityUser"
+  member             = "serviceAccount:${var.gcp_project_id}.svc.id.goog[${var.service_account_base_name}-observe/${each.value}]"
+}

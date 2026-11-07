@@ -46,9 +46,10 @@ variable "auto_upgrade_nodes" {
 variable "subnets" {
   description = "List of subnets for the GKE cluster"
   type = list(object({
-    subnet_name   = string
-    subnet_ip     = string
-    subnet_region = string
+    subnet_name           = string
+    subnet_ip             = string
+    subnet_region         = string
+    subnet_private_access = optional(string, "true")
   }))
 }
 

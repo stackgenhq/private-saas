@@ -1,9 +1,13 @@
 aws_profile = "default"
 aws_region = "us-west-2"
 cluster_name = "opsverse-eks-cluster"
-cluster_version = "1.28"
-s3_bucket_name = "opsverse-eks-bucket"
-node_type = "m5a.xlarge"
+# Pick a version in EKS standard support (`aws eks describe-cluster-versions`)
+cluster_version = "1.36"
+# Loki bucket: must be devopsnow-loki-<customer_name>-<stack_name>
+s3_bucket_name = "devopsnow-loki-<customer_name>-<stack_name>"
+# ObserveNow is memory-bound (typically 8-20 GiB per core used), so default to memory-optimized
+# nodes (4 vCPU / 32 GiB). m6a.xlarge (16 GiB) is fine for small/test stacks.
+node_type = "r6a.xlarge"
 # This is relevant if VPC and Subnets already exists and the same should be used to create ths cluster.
 subnet_ids = [
     "subnet-0cb2af484cc733af3", 

@@ -22,6 +22,11 @@ variable "node_locations" {
   type = string
 }
 
+variable "node_disk_size" {
+  type    = number
+  default = 50
+}
+
 variable "network_name" {
   type = string
 }

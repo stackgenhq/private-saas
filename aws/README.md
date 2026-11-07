@@ -18,9 +18,12 @@ export AWS_ACCESS_KEY_ID=<redacted>
 export AWS_SECRET_ACCESS_KEY=<redacted>
 ```
 
-**Step 2:** Navigate to `opsverse-eks-iam` directory and execute the following command:
+**Step 2:** Navigate to `opsverse-eks-iam` directory and initialize terraform with an S3 bucket for the state file (create one first if needed; enable versioning on it):
 ```bash
-terraform init
+terraform init \
+  -backend-config="bucket=<state-bucket>" \
+  -backend-config="key=private-saas/<cluster_name>/terraform.tfstate" \
+  -backend-config="region=<region>"
 ```
 **Step 3:** Update all the variables that are required to create the cluster to a file called `vars.tfvars` file based on your environment.
 

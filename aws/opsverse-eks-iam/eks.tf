@@ -7,16 +7,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-provider "kubernetes" {
-  host                   = module.opsverse-eks-cluster.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.opsverse-eks-cluster.cluster_certificate_authority_data)
-  token                  = data.aws_eks_cluster_auth.default.token
-}
-
-data "aws_eks_cluster_auth" "default" {
-  name = module.opsverse-eks-cluster.cluster_name
-}
-
 data "aws_availability_zones" "available" {}
 
 data "aws_caller_identity" "current" {}
@@ -52,24 +42,43 @@ module "opsverse-eks-cluster" {
       service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
     }
   }
+  # The identity running terraform gets cluster-admin via an EKS access entry.
+  # To grant other users/roles access, add them to `access_entries` (EKS access API), e.g.
+  #   access_entries = {
+  #     admin = {
+  #       principal_arn = "arn:aws:iam::<account_id>:role/<role>"
+  #       policy_associations = {
+  #         admin = {
+  #           policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  #           access_scope = { type = "cluster" }
+  #         }
+  #       }
+  #     }
+  #   }
   enable_cluster_creator_admin_permissions = true
-  eks_managed_node_group_defaults = {
-    disk_size      = 50
-  }
 
   eks_managed_node_groups = {
     user_group_one = {
       name = "node-group-1"
-      instance_types = ["${var.node_type}"]
-      ami_type       = "AL2_x86_64"
+      instance_types = [var.node_type]
+      # AL2 AMIs aren't published for EKS 1.33+
+      ami_type       = "AL2023_x86_64_STANDARD"
       capacity_type  = "ON_DEMAND"
-      # By default, the module creates a launch template to ensure tags are propagated to instances, etc.,
-      # so we need to disable it to use the default template provided by the AWS EKS managed node group service
-      # use_custom_launch_template = false
       min_size     = 2
       max_size     = 4
       desired_size = 3
-      root_volume_type = "gp2"
+      # The module's launch template ignores disk_size, so set the root volume here
+      block_device_mappings = {
+        xvda = {
+          device_name = "/dev/xvda"
+          ebs = {
+            volume_size           = var.node_disk_size
+            volume_type           = "gp3"
+            encrypted             = true
+            delete_on_termination = true
+          }
+        }
+      }
 
       # Uncomment this if a customer already has a VPC and Subnets
       # subnets = [
@@ -96,21 +105,4 @@ module "irsa-ebs-csi" {
   provider_url                  = module.opsverse-eks-cluster.oidc_provider
   role_policy_arns              = [data.aws_iam_policy.ebs_csi_policy.arn]
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
-}
-
-module "aws-auth" {
-  source  = "terraform-aws-modules/eks/aws//modules/aws-auth"
-  version = "~> 20.0"
-
-  manage_aws_auth_configmap = true
-
-  # Please add all the users who wants to access the cluster
-  aws_auth_users = [
-    {
-      userarn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/<user>"
-      username = "<user>"
-      groups   = ["system:masters"]
-    },
-  ]
-  depends_on = [module.opsverse-eks-cluster, module.irsa-ebs-csi]
 }

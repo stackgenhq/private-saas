@@ -10,17 +10,19 @@ bucket_name = "devopsnow-loki-<customer_name>-<stack_name>"
 #Please Note: The stack name used here should be the same one when trying to launch the stack through the admin console.
 service_account_base_name = "<customer_name>-<stack_name>"
 
-# It is recommended to ssecify the exact version (With exact Major, Minor and Patch) you want to use.
-# Since `auto_upgrade` option is disbaled, specifying the general version is not recommended.
-# For instance, if `1.30` version is desired, a stable version is "1.30.3-gke.1225000". This can be given specifically.
-cluster_version = "1.30"
+# It is recommended to specify the exact version (With exact Major, Minor and Patch) you want to use.
+# Since `auto_upgrade` option is disabled, specifying the general version is not recommended.
+# List valid versions with: gcloud container get-server-config --region <region> --format="value(validMasterVersions)"
+cluster_version = "1.36.5-gke.1982000"
 # release_channel is set as UNSPECIFIED because the auto upgradation of nodes is disabled.
 # This must be set to either `REGULAR` or `STABLE` in case if auto upgradation to be enabled.
 release_channel     = "UNSPECIFIED"
 auto_upgrade_nodes  = false
 deletion_protection = false
 network_name        = "opsverse-gke-network"
-node_type           = "e2-standard-4"
+# ObserveNow is memory-bound (typically 8-20 GiB per core used), so default to memory-optimized
+# nodes (4 vCPU / 32 GiB, AMD, gets sustained-use discounts). e2-standard-4 is fine for small/test stacks.
+node_type           = "n2d-highmem-4"
 node_locations      = "us-east4-a,us-east4-b,us-east4-c"
 
 # 3 Public Subnets and 3 Private Subnets by default

@@ -12,3 +12,17 @@ variable "vpc_network_azs" { type = list }
 variable "private_subnet_cidr" { type = list }
 variable "public_subnet_cidr" { type = list }
 variable "node_type" { type = string }
+variable "node_disk_size" {
+  type    = number
+  default = 50
+}
+# Defaults to "<cluster_name>-s3-pod-role"; older clusters used "eks-opsverse-s3-pod-role"
+variable "loki_pod_role_name" {
+  type    = string
+  default = null
+}
+# Defaults to "<cluster_name>-pod-permissions"; older clusters used "opsverse-eks-pod-permissions"
+variable "loki_pod_policy_name" {
+  type    = string
+  default = null
+}

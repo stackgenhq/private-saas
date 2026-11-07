@@ -40,6 +40,8 @@ module "opsverse-eks-cluster" {
     # Enable EBS CSI Driver by default
     aws-ebs-csi-driver = {
       service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
+      # EKS 1.30+ no longer marks gp2 as default; without a default StorageClass PVCs stay Pending
+      configuration_values     = jsonencode({ defaultStorageClass = { enabled = true } })
     }
   }
   # The identity running terraform gets cluster-admin via an EKS access entry.

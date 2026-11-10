@@ -6,8 +6,16 @@
 # Note: if you changed module name in eks.tf from "opsverse-eks-cluster", please
 #       update this script to replace "opsverse-eks-cluster".
 
+# Names default to per-cluster so several clusters can share an account. Clusters created
+# before this change used the fixed names below; set loki_pod_role_name /
+# loki_pod_policy_name to keep them (renaming replaces the role and changes its ARN).
+locals {
+  loki_pod_role_name   = coalesce(var.loki_pod_role_name, "${var.cluster_name}-s3-pod-role")
+  loki_pod_policy_name = coalesce(var.loki_pod_policy_name, "${var.cluster_name}-pod-permissions")
+}
+
 resource "aws_iam_role" "iam_for_loki_pods" {
-  name = "eks-opsverse-s3-pod-role"
+  name = local.loki_pod_role_name
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -30,7 +38,7 @@ EOF
 }
 
 resource "aws_iam_policy" "loki_pod_permissions" {
-  name   = "opsverse-eks-pod-permissions"
+  name   = local.loki_pod_policy_name
   policy = <<EOF
 {
     "Version": "2012-10-17",

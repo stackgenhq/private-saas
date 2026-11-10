@@ -5,7 +5,7 @@ A template for creating GKE cluster as part of Private SaaS deployment.
 
 ### Prerequisites
 Download the latest terraform binary from https://www.terraform.io/downloads and install.
-Create a GCS bucket in the same GCP project to store the Terraform state file and update its name in the `backend.tf` file.
+Create a GCS bucket (with versioning enabled) in the same GCP project to store the Terraform state file. Its name is passed to `terraform init` below.
 
 > [!IMPORTANT]
 > **Note**: The terraform version should be `1.3.x` or higher.
@@ -40,9 +40,11 @@ Copy the `authorization-code` and paste in the terminal where the `gcloud auth l
 > [!CAUTION]
 > Please ensure to use the correct `gcp_project_id` as this will be used to create the cluster.
 
-**Step 3:** Navigate to `opsverse-gke` directory and execute the following command:
+**Step 3:** Navigate to `opsverse-gke` directory and initialize terraform with the state bucket:
 ```bash
-terraform init
+terraform init \
+  -backend-config="bucket=<state-bucket>" \
+  -backend-config="prefix=private-saas/<cluster_name>"
 ```
 **Step 3:** Update all the variables that are required to create the cluster to a file called `vars.tfvars` file based on your environment.
 

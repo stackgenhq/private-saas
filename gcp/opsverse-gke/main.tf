@@ -1,13 +1,14 @@
 resource "local_file" "kubeconfig-opsverse-gke-cluster" {
   content  = module.opsverse-gke-cluster-auth.kubeconfig_raw
-  filename = "kubeconfig_opsverse-gke-cluster"
+  filename = "kubeconfig_${var.cluster_name}"
 }
 
 module "opsverse-gke-cluster" {
   source                   = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
   version                  = "32.0.4"
   kubernetes_version       = var.cluster_version
-  issue_client_certificate = true
+  # Client certificates are a legacy auth method; use gcloud / workload identity instead
+  issue_client_certificate = false
   project_id               = var.gcp_project_id
   name                     = var.cluster_name
   regional                 = true
@@ -30,7 +31,8 @@ module "opsverse-gke-cluster" {
       initial_node_count = 3
       min_count          = 3
       max_count          = 3
-      disk_size_gb       = 30
+      disk_size_gb       = var.node_disk_size
+      disk_type          = "pd-balanced"
       autoscaling        = false
       auto_upgrade       = var.auto_upgrade_nodes
     },
